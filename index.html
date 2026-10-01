@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weawow City Weather - 8-Bit Climate OS</title>
+  <meta name="description"
+    content="A live interactive pixel-art cityscape weather dashboard that dynamically transforms lighting, color palettes, and environmental effects based on real-time global weather and local time.">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect x='4' y='4' width='8' height='8' fill='%2300f2fe'/><rect x='6' y='2' width='4' height='2' fill='%23ffd166'/></svg>">
+
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/pixel-art.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="crt-active">
+
+  <!-- ==========================================================================
+       BACKGROUND DYNAMIC PIXEL ART CITY ENGINE
+       ========================================================================== -->
+  <div class="cityscape-viewport" id="cityContainer">
+    <!-- Populated dynamically by js/city-engine.js -->
+  </div>
+
+  <!-- CANVAS WEATHER EFFECTS (RAIN, SNOW, LIGHTNING, STARS) -->
+  <canvas class="weather-canvas" id="weatherCanvas"></canvas>
+
+  <!-- RETRO CRT SCANLINE OVERLAY -->
+  <div class="crt-overlay" id="crtOverlay"></div>
+
+  <!-- ASYNC LOADING BADGE -->
+  <div class="weather-loader" id="weatherLoader">
+    <div class="loader-spinner"></div>
+    <span>FETCHING SATELLITE DATA...</span>
+  </div>
+
+  <!-- ==========================================================================
+       MAIN GLASSMORPHIC HUD / WEATHER DASHBOARD OVERLAY
+       ========================================================================== -->
+  <div class="app-wrapper">
+
+    <!-- TOP HEADER HUD -->
+    <header class="app-header">
+      <!-- Brand & Title -->
+      <div class="brand-group" title="Click for a shooting star!">
+        <div class="brand-icon-box">☁️</div>
+        <div class="brand-text-col">
+          <h1 class="brand-title">WEAWOW WEATHER OS</h1>
+          <span class="brand-subtitle">8-Bit Atmospheric Simulator</span>
+        </div>
+      </div>
+
+      <!-- City Search & Autocomplete -->
+      <div class="search-box-wrapper">
+        <form class="search-form" id="searchForm" autocomplete="off">
+          <span class="search-icon-left">🔍</span>
+          <input type="text" id="citySearchInput" class="search-input"
+            placeholder="Search any world or Indian city (e.g. Kolkata, Mumbai, Delhi)..." autocomplete="off" spellcheck="false">
+          <button type="submit" class="search-submit-btn" title="Search City" aria-label="Search City">↵</button>
+        </form>
+        <!-- Dynamic Autocomplete Results -->
+        <div class="search-results" id="searchResults"></div>
+      </div>
+
+      <!-- Header Controls: Clock, Unit, Sound & CRT -->
+      <div class="header-actions">
+        <!-- Live City Clock -->
+        <div class="clock-badge" id="localClockDisplay" title="Local City Time">
+          <span class="clock-time">--:--:--</span>
+          <span class="clock-date">Connecting...</span>
+        </div>
+
+        <!-- °C / °F Unit Toggle -->
+        <button class="hud-btn" id="unitToggleBtn" title="Toggle °C / °F"
+          aria-label="Toggle Temperature Unit">°C</button>
+
+        <!-- Ambient Sound Toggle -->
+        <button class="hud-btn" id="audioToggleBtn" title="Toggle Procedural Ambient Sound" aria-label="Toggle Sound">
+          <span class="audio-icon">🔇</span>
+          <span class="audio-label">MUTE</span>
+        </button>
+
+        <!-- CRT Scanlines Filter Toggle -->
+        <button class="hud-btn active" id="crtToggleBtn" title="Toggle CRT Retro Filter" aria-label="Toggle CRT Filter">
+          <span>📺</span>
+          <span>CRT</span>
+        </button>
+
+        <!-- Refresh Button -->
+        <button class="hud-btn hud-btn-circle" id="refreshWeatherBtn" title="Refresh Live Weather"
+          aria-label="Refresh Weather">
+          <span>↻</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- PRESET QUICK ACCESS PILLS -->
+    <div class="preset-pills-bar">
+      <span class="preset-pill-label">QUICK CITIES:</span>
+      <button class="preset-city-pill active" data-city="Kolkata">Kolkata 🇮🇳</button>
+      <button class="preset-city-pill" data-city="Mumbai">Mumbai 🇮🇳</button>
+      <button class="preset-city-pill" data-city="Delhi">Delhi 🇮🇳</button>
+      <button class="preset-city-pill" data-city="Bengaluru">Bengaluru 🇮🇳</button>
+      <button class="preset-city-pill" data-city="Chennai">Chennai 🇮🇳</button>
+      <button class="preset-city-pill" data-city="Hyderabad">Hyderabad 🇮🇳</button>
+      <button class="preset-city-pill" data-city="Jaipur">Jaipur 🇮🇳</button>
+    </div>
+
+    <!-- MAIN DASHBOARD CONTENT GRID -->
+    <main class="dashboard-grid">
+
+      <!-- LEFT: CURRENT WEATHER HERO & METRICS -->
+      <section class="glass-panel hero-weather-card">
+        <!-- Location Header -->
+        <div class="hero-top-row">
+          <div class="location-info">
+            <h2 class="city-title" id="displayCityName">Kolkata</h2>
+            <span class="country-title" id="displayCountryName">India</span>
+          </div>
+          <div class="badges-stack">
+            <span class="badge time-tag time-night" id="hudTimeBadge">NIGHT</span>
+          </div>
+        </div>
+
+        <!-- Temperature & Condition Badge -->
+        <div class="hero-temp-row">
+          <div class="temp-primary-box">
+            <span class="temp-huge-num" id="mainTempNumber">18°</span>
+            <div class="temp-meta-col">
+              <span class="weather-badge-pill" id="conditionBadge">Clear Sky</span>
+              <span class="feels-like" id="feelsLikeText">Feels like 18°C</span>
+              <span class="hi-low-temp" id="hiLowText">H: 22° L: 14°</span>
+            </div>
+          </div>
+
+          <!-- Animated Pixel Weather SVG -->
+          <div class="weather-icon-giant" id="weatherIconContainer">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+
+        <!-- Atmospheric Metrics Grid -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>💧</span>
+              <span>Humidity</span>
+            </div>
+            <span class="metric-value" id="valHumidity">65%</span>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>💨</span>
+              <span>Wind Speed</span>
+            </div>
+            <span class="metric-value" id="valWind">12 km/h</span>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>⏲️</span>
+              <span>Air Pressure</span>
+            </div>
+            <span class="metric-value" id="valPressure">1013 hPa</span>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>☁️</span>
+              <span>Cloud Cover</span>
+            </div>
+            <span class="metric-value" id="valClouds">15%</span>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>🌅</span>
+              <span>Sunrise</span>
+            </div>
+            <span class="metric-value" id="valSunrise">05:35 AM</span>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>🌇</span>
+              <span>Sunset</span>
+            </div>
+            <span class="metric-value" id="valSunset">05:42 PM</span>
+          </div>
+        </div>
+
+        <!-- 24-Hour Hourly Timeline -->
+        <div class="hourly-forecast-section">
+          <span class="section-label">24-HOUR HOURLY OUTLOOK</span>
+          <div class="hourly-scroll-track" id="hourlyScrollContainer">
+            <!-- Hourly cards rendered dynamically -->
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: 7-DAY FORECAST PANEL -->
+      <section class="glass-panel daily-forecast-panel">
+        <span class="section-label">7-DAY FORECAST</span>
+        <div class="daily-list" id="dailyForecastList">
+          <!-- Daily forecast rows rendered dynamically -->
+        </div>
+      </section>
+
+    </main>
+
+    <!-- BOTTOM INTERACTIVE CONTROLS & ENVIRONMENT SIMULATOR -->
+    <footer class="bottom-toolbar">
+      <!-- Interactive Windows Lit Counter -->
+      <div class="toolbar-group">
+        <span class="toolbar-label">
+          <span>🏢</span>
+          <span>CITY WINDOWS:</span>
+        </span>
+        <span class="window-count-badge" id="windowCountText">0/0</span>
+        <button class="hud-btn" id="toggleAllLightsBtn" title="Toggle all window lights">TOGGLE ALL</button>
+        <button class="hud-btn" id="randomizeLightsBtn" title="Randomize lit windows">SHUFFLE</button>
+      </div>
+
+      <!-- Environment Simulation Mode -->
+      <div class="toolbar-group">
+        <span class="toolbar-label">
+          <span>⚡</span>
+          <span>SIMULATOR:</span>
+        </span>
+        <div class="sim-pills-row">
+          <button class="sim-btn active" data-sim="realtime" title="Sync with Real-time weather">REALTIME</button>
+          <button class="sim-btn" data-sim="dawn" title="Test Dawn / Sunrise">DAWN</button>
+          <button class="sim-btn" data-sim="day" title="Test Bright Day">DAY</button>
+          <button class="sim-btn" data-sim="sunset" title="Test Synthwave Sunset">SUNSET</button>
+          <button class="sim-btn" data-sim="night" title="Test Cyberpunk Night">NIGHT</button>
+          <button class="sim-btn" data-sim="rain" title="Test Rain & Splashes">RAIN</button>
+          <button class="sim-btn" data-sim="snow" title="Test Snowfall">SNOW</button>
+          <button class="sim-btn" data-sim="thunderstorm" title="Test Thunder & Lightning">THUNDER</button>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- JAVASCRIPT LOGIC MODULES -->
+  <script src="js/audio-synth.js"></script>
+  <script src="js/weather-api.js"></script>
+  <script src="js/weather-fx.js"></script>
+  <script src="js/city-engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>
